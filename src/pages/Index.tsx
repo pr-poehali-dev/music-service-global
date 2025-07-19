@@ -1,18 +1,28 @@
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Icon from "@/components/ui/icon"
+import AudioPlayer from "@/components/AudioPlayer"
 
 const Index = () => {
+  const [currentTrack, setCurrentTrack] = useState<any>(null)
+  const [isPlayerVisible, setIsPlayerVisible] = useState(false)
+
   const topTracks = [
-    { id: 1, title: "Bohemian Rhapsody", artist: "Queen", plays: "2.1B", duration: "5:55" },
-    { id: 2, title: "Hotel California", artist: "Eagles", plays: "1.8B", duration: "6:30" },
-    { id: 3, title: "Stairway to Heaven", artist: "Led Zeppelin", plays: "1.5B", duration: "8:02" },
-    { id: 4, title: "Imagine", artist: "John Lennon", plays: "1.2B", duration: "3:03" },
-    { id: 5, title: "Smells Like Teen Spirit", artist: "Nirvana", plays: "900M", duration: "5:01" }
+    { id: 1, title: "Bohemian Rhapsody", artist: "Queen", plays: "2.1B", duration: "5:55", coverUrl: "/img/32882425-1015-4d5c-8e17-2baae435d8e1.jpg" },
+    { id: 2, title: "Hotel California", artist: "Eagles", plays: "1.8B", duration: "6:30", coverUrl: "/img/32882425-1015-4d5c-8e17-2baae435d8e1.jpg" },
+    { id: 3, title: "Stairway to Heaven", artist: "Led Zeppelin", plays: "1.5B", duration: "8:02", coverUrl: "/img/32882425-1015-4d5c-8e17-2baae435d8e1.jpg" },
+    { id: 4, title: "Imagine", artist: "John Lennon", plays: "1.2B", duration: "3:03", coverUrl: "/img/32882425-1015-4d5c-8e17-2baae435d8e1.jpg" },
+    { id: 5, title: "Smells Like Teen Spirit", artist: "Nirvana", plays: "900M", duration: "5:01", coverUrl: "/img/32882425-1015-4d5c-8e17-2baae435d8e1.jpg" }
   ]
+
+  const handlePlayTrack = (track: any) => {
+    setCurrentTrack(track)
+    setIsPlayerVisible(true)
+  }
 
   const featuredPlaylists = [
     { id: 1, name: "Trending Now", tracks: 50, followers: "2.3M" },
@@ -126,7 +136,12 @@ const Index = () => {
                   <div className="flex items-center space-x-6">
                     <span className="text-gray-400">{track.plays} прослушиваний</span>
                     <span className="text-gray-400">{track.duration}</span>
-                    <Button size="sm" variant="ghost" className="p-2">
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="p-2"
+                      onClick={() => handlePlayTrack(track)}
+                    >
                       <Icon name="Play" size={16} className="text-white" />
                     </Button>
                   </div>
@@ -288,6 +303,12 @@ const Index = () => {
           </div>
         </div>
       </footer>
+
+      {/* Audio Player */}
+      <AudioPlayer 
+        currentTrack={currentTrack}
+        isVisible={isPlayerVisible}
+      />
     </div>
   )
 }
