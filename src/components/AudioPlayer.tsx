@@ -14,9 +14,20 @@ interface Track {
 interface AudioPlayerProps {
   currentTrack?: Track
   isVisible: boolean
+  queue: Track[]
+  onNextTrack: () => void
+  onPrevTrack: () => void
+  onQueueToggle: () => void
 }
 
-const AudioPlayer = ({ currentTrack, isVisible }: AudioPlayerProps) => {
+const AudioPlayer = ({ 
+  currentTrack, 
+  isVisible, 
+  queue, 
+  onNextTrack, 
+  onPrevTrack, 
+  onQueueToggle 
+}: AudioPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(220) // 3:40 in seconds
@@ -32,7 +43,7 @@ const AudioPlayer = ({ currentTrack, isVisible }: AudioPlayerProps) => {
     setWaveformData(generateWaveform())
   }, [currentTrack])
 
-  // Simulate time progression
+  // Simulate time progression and auto-advance
   useEffect(() => {
     let interval: NodeJS.Timeout
     if (isPlaying) {
@@ -40,6 +51,8 @@ const AudioPlayer = ({ currentTrack, isVisible }: AudioPlayerProps) => {
         setCurrentTime(prev => {
           if (prev >= duration) {
             setIsPlaying(false)
+            // Auto-advance to next track
+            onNextTrack()
             return 0
           }
           return prev + 1
@@ -47,7 +60,13 @@ const AudioPlayer = ({ currentTrack, isVisible }: AudioPlayerProps) => {
       }, 1000)
     }
     return () => clearInterval(interval)
-  }, [isPlaying, duration])
+  }, [isPlaying, duration, onNextTrack])
+
+  // Reset time when track changes
+  useEffect(() => {
+    setCurrentTime(0)
+    setIsPlaying(true)
+  }, [currentTrack])
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -107,7 +126,12 @@ const AudioPlayer = ({ currentTrack, isVisible }: AudioPlayerProps) => {
               <Button size="sm" variant="ghost" className="p-2 hover:bg-gray-800">
                 <Icon name="Shuffle" size={16} className="text-gray-400" />
               </Button>
-              <Button size="sm" variant="ghost" className="p-2 hover:bg-gray-800">
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="p-2 hover:bg-gray-800"
+                onClick={onPrevTrack}
+              >
                 <Icon name="SkipBack" size={16} className="text-white" />
               </Button>
               <Button
@@ -121,7 +145,12 @@ const AudioPlayer = ({ currentTrack, isVisible }: AudioPlayerProps) => {
                   className={isPlaying ? "" : "ml-0.5"}
                 />
               </Button>
-              <Button size="sm" variant="ghost" className="p-2 hover:bg-gray-800">
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="p-2 hover:bg-gray-800"
+                onClick={onNextTrack}
+              >
                 <Icon name="SkipForward" size={16} className="text-white" />
               </Button>
               <Button size="sm" variant="ghost" className="p-2 hover:bg-gray-800">
@@ -176,8 +205,18 @@ const AudioPlayer = ({ currentTrack, isVisible }: AudioPlayerProps) => {
             <Button size="sm" variant="ghost" className="p-2 hover:bg-gray-800 hidden md:flex">
               <Icon name="Mic2" size={16} className="text-gray-400" />
             </Button>
-            <Button size="sm" variant="ghost" className="p-2 hover:bg-gray-800 hidden md:flex">
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="p-2 hover:bg-gray-800 hidden md:flex"
+              onClick={onQueueToggle}
+            >
               <Icon name="ListMusic" size={16} className="text-gray-400" />
+              {queue.length > 0 && (
+                <span className="ml-1 text-xs bg-white text-black rounded-full w-4 h-4 flex items-center justify-center">
+                  {queue.length}
+                </span>
+              )}
             </Button>
             <div className="flex items-center space-x-2 hidden lg:flex">
               <Icon 

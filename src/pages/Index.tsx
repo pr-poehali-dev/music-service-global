@@ -6,10 +6,14 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Icon from "@/components/ui/icon"
 import AudioPlayer from "@/components/AudioPlayer"
+import PlayQueue from "@/components/PlayQueue"
 
 const Index = () => {
   const [currentTrack, setCurrentTrack] = useState<any>(null)
   const [isPlayerVisible, setIsPlayerVisible] = useState(false)
+  const [playQueue, setPlayQueue] = useState<any[]>([])
+  const [isQueueOpen, setIsQueueOpen] = useState(false)
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0)
 
   const topTracks = [
     { id: 1, title: "Bohemian Rhapsody", artist: "Queen", plays: "2.1B", duration: "5:55", coverUrl: "/img/32882425-1015-4d5c-8e17-2baae435d8e1.jpg" },
@@ -22,6 +26,67 @@ const Index = () => {
   const handlePlayTrack = (track: any) => {
     setCurrentTrack(track)
     setIsPlayerVisible(true)
+    
+    // Add track to queue if not already there
+    if (!playQueue.find(t => t.id === track.id)) {
+      setPlayQueue([...playQueue, track])
+    }
+    
+    // Set current track index in queue
+    const trackIndex = playQueue.findIndex(t => t.id === track.id)
+    if (trackIndex !== -1) {
+      setCurrentTrackIndex(trackIndex)
+    } else {
+      setCurrentTrackIndex(playQueue.length)
+    }
+  }
+
+  const handleNextTrack = () => {
+    if (playQueue.length === 0) return
+    
+    const nextIndex = (currentTrackIndex + 1) % playQueue.length
+    setCurrentTrackIndex(nextIndex)
+    setCurrentTrack(playQueue[nextIndex])
+  }
+
+  const handlePrevTrack = () => {
+    if (playQueue.length === 0) return
+    
+    const prevIndex = currentTrackIndex === 0 ? playQueue.length - 1 : currentTrackIndex - 1
+    setCurrentTrackIndex(prevIndex)
+    setCurrentTrack(playQueue[prevIndex])
+  }
+
+  const handleQueueUpdate = (newQueue: any[]) => {
+    setPlayQueue(newQueue)
+    
+    // Update current track index if current track is still in queue
+    if (currentTrack) {
+      const newIndex = newQueue.findIndex(t => t.id === currentTrack.id)
+      if (newIndex !== -1) {
+        setCurrentTrackIndex(newIndex)
+      } else if (newQueue.length > 0) {
+        // If current track was removed, play first track in queue
+        setCurrentTrackIndex(0)
+        setCurrentTrack(newQueue[0])
+      } else {
+        // If queue is empty, stop playback
+        setCurrentTrack(null)
+        setIsPlayerVisible(false)
+      }
+    }
+  }
+
+  const handleQueueTrackSelect = (track: any) => {
+    const trackIndex = playQueue.findIndex(t => t.id === track.id)
+    if (trackIndex !== -1) {
+      setCurrentTrackIndex(trackIndex)
+      setCurrentTrack(track)
+    }
+  }
+
+  const toggleQueue = () => {
+    setIsQueueOpen(!isQueueOpen)
   }
 
   const featuredPlaylists = [
@@ -308,6 +373,20 @@ const Index = () => {
       <AudioPlayer 
         currentTrack={currentTrack}
         isVisible={isPlayerVisible}
+        queue={playQueue}
+        onNextTrack={handleNextTrack}
+        onPrevTrack={handlePrevTrack}
+        onQueueToggle={toggleQueue}
+      />
+
+      {/* Play Queue */}
+      <PlayQueue
+        isOpen={isQueueOpen}
+        onClose={() => setIsQueueOpen(false)}
+        queue={playQueue}
+        currentTrack={currentTrack}
+        onTrackSelect={handleQueueTrackSelect}
+        onQueueUpdate={handleQueueUpdate}
       />
     </div>
   )
